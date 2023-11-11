@@ -1,0 +1,41 @@
+Resources:
+  LaunchTemplate1:
+    Type: 'AWS::EC2::LaunchTemplate'
+    Properties:
+      LaunchTemplateName: spot
+      VersionDescription: 1
+      LaunchTemplateData:
+        ImageId: ami-0e39821b4a2a8bce6
+        #KeyName: key2
+        #SecurityGroups: [default]
+        InstanceType: t1.micro
+
+        # cannot use instancerequirements
+
+        # BlockDeviceMappings:
+        #   - DeviceName: /dev/sda1
+        #     Ebs:
+        #       VolumeSize: 8
+        
+        # TagSpecifications:
+        #   - ResourceType: instance
+        #     Tags:
+        #       - Key: name
+        #         Value: simon
+
+        InstanceMarketOptions:
+          MarketType: spot
+          SpotOptions:
+            InstanceInterruptionBehavior: stop
+
+  Ec2Instance1:
+    Type: 'AWS::EC2::Instance'
+    DependsOn: LaunchTemplate1
+    Properties:
+      KeyName: key2
+      ImageId: ami-0e39821b4a2a8bce6
+      LaunchTemplate: 
+        LaunchTemplateName: spot
+        Version: 1
+ 
+      

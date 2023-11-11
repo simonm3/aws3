@@ -1,0 +1,32 @@
+Resources:
+  fleet1:
+    Type: "AWS::EC2::SpotFleet"
+    Properties:
+      SpotFleetRequestConfigData:
+        IamFleetRole: "arn:aws:iam::213541786532:role/aws-ec2-spot-fleet-tagging-role"
+        TargetCapacity: 1
+        Type: maintain
+
+        LaunchSpecifications:
+          - ImageId: ami-0e39821b4a2a8bce6
+            #KeyName: key2
+            #SecurityGroups: [default]
+            
+            InstanceRequirements:
+              VCpuCount:
+                Min: 0
+              MemoryMiB:
+                Min: 0
+              AcceleratorTypes: [gpu]
+              AcceleratorManufacturers: [nvidia]
+
+            # BlockDeviceMappings:
+            #   - DeviceName: /dev/sda1
+            #     Ebs:
+            #       VolumeSize: 8
+            
+            # TagSpecifications:
+            #   - ResourceType: instance
+            #     Tags:
+            #       - Key: name
+            #         Value: simon
