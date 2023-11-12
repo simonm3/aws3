@@ -1,9 +1,7 @@
 """
-miscellaneous aws utilities
-    filter resources
-    get resource data
-
-NOTE: This is a set of functions not a class
+aws utility functions
+    convert dicts to aws formats and vice versa
+    list resources
 """
 import itertools
 import json
@@ -21,6 +19,7 @@ cf = boto3.client("cloudformation")
 
 # dict2aws ###########################################
 
+
 def filters(**kwargs):
     """format dict into filter format
     e.g. filt(a=b) => [dict(Name="a", Values=["b"]]
@@ -36,8 +35,11 @@ def tags(**kwargs):
 def params(**kwargs):
     return [dict(ParameterKey=k, ParameterValue=v) for k, v in kwargs.items()]
 
+
 def tag(**kwargs):
-    return {f"tag:{k}":v for k,v in kwargs.items()}
+    """apply search filters to tags"""
+    return {f"tag:{k}": v for k, v in kwargs.items()}
+
 
 # aws2dict ###################################################
 
@@ -48,13 +50,14 @@ def get_tags(res):
     return {}
 
 
-# lists live resources ###############################
+# list live resources ###############################
 
 
 def get_instances(**kwargs):
     try:
-        r = ec2.describe_instances(Filters=filters(**kwargs))\
-                        ["Reservations"][0]["Instances"]
+        r = ec2.describe_instances(Filters=filters(**kwargs))["Reservations"][0][
+            "Instances"
+        ]
     except IndexError:
         return []
     return sorted(r, key=lambda s: s["LaunchTime"])
@@ -81,12 +84,14 @@ def get_ips():
     """get list of elastic ips"""
     return [ip["PublicIp"] for ip in ec2.describe_addresses()["Addresses"]]
 
+
 def get_stacks(**kwargs):
     r = cf.list_stacks(StackStatusFilter=["CREATE_COMPLETE"])["StackSummaries"]
     return sorted(r, key=lambda s: s["CreationTime"])
 
 
 def show():
+    """list names of live resources"""
     instances = [
         get_tags(x).get("Name", "unknown")
         for x in get_instances(instance_state_name="running")
@@ -108,7 +113,7 @@ def show():
 
 
 def get_instancesdf(**filters):
-    """get dataframe of your instances"""
+    """return dataframe of instances"""
     from . import Instance
 
     alldata = []

@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-from base64 import b64encode
 
 import click
 import yaml
@@ -67,15 +66,6 @@ def start(template, name=""):
 
 @c.command()
 @click.argument("name")
-def terminate(name):
-    """delete stack with name"""
-    log.info(f"terminating {name}")
-    cf.delete_stack(StackName=name)
-    show.callback()
-
-
-@c.command()
-@click.argument("name")
 def stop(name):
     """create image and stop stack with name"""
     # get instance
@@ -104,9 +94,18 @@ def stop(name):
     # remove stack
     log.info(f"removing stack {name}")
     cf.delete_stack(StackName=name)
-    ec2.get_waiter('stack_delete_complete').wait(StackName=name)
-    
+    ec2.get_waiter("stack_delete_complete").wait(StackName=name)
+
     log.info("stop completed")
+    show.callback()
+
+
+@c.command()
+@click.argument("name")
+def terminate(name):
+    """delete stack with name"""
+    log.info(f"terminating {name}")
+    cf.delete_stack(StackName=name)
     show.callback()
 
 
