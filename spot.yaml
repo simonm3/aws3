@@ -36,6 +36,9 @@ Resources:
             TagSpecifications:
               - ResourceType: instance
                 Tags:
+                  - Key: Name
+                    Value:
+                      Ref: Name
                   - Key: name
                     Value:
                       Ref: Name

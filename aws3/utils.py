@@ -88,13 +88,13 @@ def get_stacks(**kwargs):
 
 def show():
     instances = [
-        get_tags(x).get("name", "unknown")
+        get_tags(x).get("Name", "unknown")
         for x in get_instances(instance_state_name="running")
     ]
-    images = [get_tags(x).get("name", "unknown") for x in get_images()]
+    images = [get_tags(x).get("Name", "unknown") for x in get_images()]
     # TODO state in ['creating','available','in-use']
-    volumes = [get_tags(x).get("name", "unknown") for x in get_volumes()]
-    snapshots = [get_tags(x).get("name", "unknown") for x in get_snapshots()]
+    volumes = [get_tags(x).get("Name", "unknown") for x in get_volumes()]
+    snapshots = [get_tags(x).get("Name", "unknown") for x in get_snapshots()]
     stacks = [x["StackName"] for x in get_stacks()]
     log.info(f"{instances=}\n{images=}\n{volumes=}\n{snapshots=}\n{stacks=}")
 

@@ -41,9 +41,8 @@ def start(template, name=""):
     stack = yaml.safe_load(open(template).read())
 
     if name:
-        tname = u.tag(name)
         # existing image
-        images = u.get_images(**u.tag(name=name))
+        images = u.get_images(**u.tag(Name=name))
         if images:
             params["ImageId"] = images[-1].id
     else:
@@ -52,7 +51,7 @@ def start(template, name=""):
         with open(f"{here}/names.csv") as f:
             names = f.read().split("\n")
         # avoid existing images
-        images = u.get_images(**u.tag(name=name))
+        images = u.get_images(**u.tag(Name=name))
         names = list(set(names) - set(images))
         name = random.choice(names)
 
@@ -79,32 +78,35 @@ def terminate(name):
 @click.argument("name")
 def stop(name):
     """create image and stop stack with name"""
-    tname = u.tag(name)
-
     # get instance
-    InstanceId = u.get_instances(**u.tag(name=name))[0]["InstanceId"]
+    InstanceId = u.get_instances(**u.tag(Name=name))[0]["InstanceId"]
 
     # create image
     log.info(f"saving image {name}")
     r = ec2.create_image(
         InstanceId=InstanceId,
-        Name=name,
+        # Name=> AMI_Name; Name=>Name; name shortcut for search
+        Name=name + " " + InstanceId,
         TagSpecifications=[
-            dict(ResourceType="image", Tags=u.tags(name=name)),
-            dict(ResourceType="snapshot", Tags=u.tags(name=name)),
+            dict(ResourceType="image", Tags=u.tags(Name=name, name=name)),
+            dict(ResourceType="snapshot", Tags=u.tags(Name=name, name=name)),
         ],
     )
+    # wait until snapshot complete before removing images and stack
+    ec2.get_waiter("image_available").wait(ImageIds=[r["ImageId"]])
+
     # remove old images
     log.info(f"removing old images {name}")
-    images = u.get_images(**u.tag(name=name))
+    images = u.get_images(**u.tag(Name=name))
     for image in images[:-1]:
         ec2.deregister_image(ImageId=image.id)
 
+    # remove stack
     log.info(f"removing stack {name}")
-    waiter = ec2.get_waiter("image_available")
-    waiter.wait(ImageIds=[r["ImageId"]])
     cf.delete_stack(StackName=name)
-
+    ec2.get_waiter('stack_delete_complete').wait(StackName=name)
+    
+    log.info("stop completed")
     show.callback()
 
 
