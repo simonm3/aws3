@@ -27,10 +27,10 @@ Options:
   --help  Show this message and exit.
 
 Commands:
-  start      start a stack from a template args=template [name]
-  stop       create image and stop stack args=name
-  terminate  terminate stack and delete image args=name
-  show       show aws resources currently used
+  * start      start a stack from a template args=template [name]
+  * stop       create image and stop stack args=name
+  * terminate  terminate stack and delete image args=name
+  * show       show aws resources currently used
 
 
 Dependencies
