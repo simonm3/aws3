@@ -1,3 +1,11 @@
+# spot instance
+Parameters:
+  Name:
+    Type: String
+  ImageId:
+    Type: String
+    Default: ami-0e39821b4a2a8bce6
+
 Resources:
   fleet1:
     Type: "AWS::EC2::SpotFleet"
@@ -8,25 +16,33 @@ Resources:
         Type: maintain
 
         LaunchSpecifications:
-          - ImageId: ami-0e39821b4a2a8bce6
+          - ImageId:
+              Ref: ImageId
             #KeyName: key2
             #SecurityGroups: [default]
-            
+
             InstanceRequirements:
               VCpuCount:
                 Min: 0
               MemoryMiB:
                 Min: 0
-              AcceleratorTypes: [gpu]
-              AcceleratorManufacturers: [nvidia]
+            #   AcceleratorTypes: [gpu]
+            #   AcceleratorManufacturers: [nvidia]
 
             # BlockDeviceMappings:
             #   - DeviceName: /dev/sda1
             #     Ebs:
             #       VolumeSize: 8
-            
-            # TagSpecifications:
-            #   - ResourceType: instance
-            #     Tags:
-            #       - Key: name
-            #         Value: simon
+
+            TagSpecifications:
+              - ResourceType: instance
+                Tags:
+                  - Key: Name
+                    Value:
+                      Ref: Name
+
+            UserData:
+              Fn::Base64: |
+                #!/bin/bash
+                cd /home/ubuntu
+                touch "startup"

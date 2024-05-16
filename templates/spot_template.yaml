@@ -1,6 +1,7 @@
+# spot instance using a launch template, more flexible for multiple instances
 Resources:
   LaunchTemplate1:
-    Type: 'AWS::EC2::LaunchTemplate'
+    Type: "AWS::EC2::LaunchTemplate"
     Properties:
       LaunchTemplateName: spot
       VersionDescription: 1
@@ -16,7 +17,7 @@ Resources:
         #   - DeviceName: /dev/sda1
         #     Ebs:
         #       VolumeSize: 8
-        
+
         # TagSpecifications:
         #   - ResourceType: instance
         #     Tags:
@@ -29,13 +30,11 @@ Resources:
             InstanceInterruptionBehavior: stop
 
   Ec2Instance1:
-    Type: 'AWS::EC2::Instance'
+    Type: "AWS::EC2::Instance"
     DependsOn: LaunchTemplate1
     Properties:
       KeyName: key2
       ImageId: ami-0e39821b4a2a8bce6
-      LaunchTemplate: 
+      LaunchTemplate:
         LaunchTemplateName: spot
         Version: 1
- 
-      

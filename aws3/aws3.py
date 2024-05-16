@@ -4,13 +4,18 @@ import random
 
 import click
 import yaml
-from defaultlog import log
-
-for logger in ["botocore", "numexpr"]:
-    logging.getLogger(logger).setLevel(logging.WARNING)
 
 from . import utils as u
 from .utils import cf, ec2
+
+try:
+    from defaultlog import log
+except:
+    logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger()
+
+for logger in ["botocore", "numexpr"]:
+    logging.getLogger(logger).setLevel(logging.WARNING)
 
 
 class OrderCommands(click.Group):
@@ -22,30 +27,30 @@ class OrderCommands(click.Group):
 
 @click.group(cls=OrderCommands)
 def c():
-    """simplified cli for aws stacks"""
+    """cli to start/stop instances"""
     pass
 
 
-@c.command()
+@c.command(help="start a stack from a template args=template [name]")
 @click.argument("template")
 @click.argument("name", default="", required=False)
 def start(template, name=""):
-    """start stack from template name. adds .yaml (template) and .sh (startup script)"""
+    """start stack from templates/{name}.yaml"""
     params = dict()
 
     # get template
     base, ext = os.path.splitext(template)
     if not ext and not os.path.isfile(template):
-        template = f"{base}.yaml"
+        template = f"templates/{base}.yaml"
     stack = yaml.safe_load(open(template).read())
 
     if name:
-        # existing image
         images = u.get_images(**u.tag(Name=name))
         if images:
+            # existing image
             params["ImageId"] = images[-1].id
     else:
-        # new image
+        # generate name for new image
         here = os.path.dirname(os.path.abspath(__file__))
         with open(f"{here}/names.csv") as f:
             names = f.read().split("\n")
@@ -64,43 +69,49 @@ def start(template, name=""):
     )
 
 
-@c.command()
+@c.command(help="create image and stop stack args=name")
 @click.argument("name")
 def stop(name):
-    """create image and stop stack with name"""
+    """create image and stop stack"""
+    save = True
     # get instance
-    InstanceId = u.get_instances(**u.tag(Name=name))[0]["InstanceId"]
+    try:
+        InstanceId = u.get_instances(**u.tag(Name=name))[0]["InstanceId"]
+    except IndexError:
+        log.warning("instance not found so could not be stopped")
+        save = False
 
-    # create image
-    log.info(f"saving image {name}")
-    r = ec2.create_image(
-        InstanceId=InstanceId,
-        # Name=> AMI_Name; Name=>Name; name shortcut for search
-        Name=name + " " + InstanceId,
-        TagSpecifications=[
-            dict(ResourceType="image", Tags=u.tags(Name=name, name=name)),
-            dict(ResourceType="snapshot", Tags=u.tags(Name=name, name=name)),
-        ],
-    )
-    # wait until snapshot complete before removing images and stack
-    ec2.get_waiter("image_available").wait(ImageIds=[r["ImageId"]])
+    if save:
+        # create image
+        log.info(f"saving image {name}")
+        r = ec2.create_image(
+            InstanceId=InstanceId,
+            # Name=> AMI_Name; Name=>Name; name shortcut for search
+            Name=name + " " + InstanceId,
+            TagSpecifications=[
+                dict(ResourceType="image", Tags=u.tags(Name=name, name=name)),
+                dict(ResourceType="snapshot", Tags=u.tags(Name=name, name=name)),
+            ],
+        )
+        # wait until snapshot complete before removing images and stack
+        ec2.get_waiter("image_available").wait(ImageIds=[r["ImageId"]])
 
-    # remove old images
-    log.info(f"removing old images {name}")
-    images = u.get_images(**u.tag(Name=name))
-    for image in images[:-1]:
-        ec2.deregister_image(ImageId=image.id)
+        # remove old images
+        log.info(f"removing old images {name}")
+        images = u.get_images(**u.tag(Name=name))
+        for image in images[:-1]:
+            ec2.deregister_image(ImageId=image.id)
 
     # remove stack
     log.info(f"removing stack {name}")
     cf.delete_stack(StackName=name)
-    ec2.get_waiter("stack_delete_complete").wait(StackName=name)
+    cf.get_waiter("stack_delete_complete").wait(StackName=name)
 
     log.info("stop completed")
     show.callback()
 
 
-@c.command()
+@c.command(help="terminate stack. does not delete AMI/snapshots. args=name")
 @click.argument("name")
 def terminate(name):
     """delete stack with name"""
@@ -109,6 +120,7 @@ def terminate(name):
     show.callback()
 
 
-@c.command()
+@c.command(help="show aws resources currently used")
 def show():
+    """show aws resources currently used"""
     u.show()

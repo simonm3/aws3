@@ -2,6 +2,7 @@
 aws utility functions
     convert dicts to aws formats and vice versa
     list resources
+    get instance information
 """
 import itertools
 import json
@@ -109,7 +110,7 @@ def show():
     )
 
 
-# get dataframe of resource information ######################
+# get dataframe of instances ######################
 
 
 def get_instancesdf(**filters):

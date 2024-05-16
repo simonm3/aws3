@@ -1,0 +1,16 @@
+# persistent instance
+# can specify type OR requirements such as memory
+Parameters:
+  Name:
+    Type: String
+Resources:
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      KeyName: key2
+      ImageId: ami-0e39821b4a2a8bce6
+      InstanceType: t2.micro
+      Tags:
+        - Key: Name
+          Value:
+            Ref: Name
