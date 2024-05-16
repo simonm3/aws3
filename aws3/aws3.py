@@ -115,8 +115,12 @@ def stop(name):
 @click.argument("name")
 def terminate(name):
     """delete stack with name"""
-    log.info(f"terminating {name}")
-    cf.delete_stack(StackName=name)
+    stacks = [x["StackName"] for x in u.get_stacks()]
+    if name in stacks:
+        log.info(f"terminating {name}")
+        cf.delete_stack(StackName=name)
+    else:
+        log.warning(f"stack not found {name}")
     show.callback()
 
 
