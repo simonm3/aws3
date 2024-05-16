@@ -24,6 +24,7 @@ Usage: aws3 [OPTIONS] COMMAND [ARGS]...
   cli to start/stop instances
 
 Options:
+
   --help  Show this message and exit.
 
 Commands:
@@ -36,13 +37,13 @@ Commands:
 Dependencies
 ============
 
-boto3 - aws api
-click - for building command line interfaces using decorators
+* boto3 - aws api
+* click - for building command line interfaces using decorators
 
 Files
 =====
 
-aws3 - main cli
-utils - simplifications of the aws/boto3 api
-names.csv - list of names to assign to stacks/resources
-templates folder - starter templates for stacks
+* aws3 - main cli
+* utils - simplifications of the aws/boto3 api
+* names.csv - list of names to assign to stacks/resources
+* templates folder - starter templates for stacks
