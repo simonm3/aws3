@@ -17,6 +17,8 @@ except:
 for logger in ["botocore", "numexpr"]:
     logging.getLogger(logger).setLevel(logging.WARNING)
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
 
 class OrderCommands(click.Group):
     """make help message show commands in order defined not alphabetical"""
@@ -41,7 +43,7 @@ def start(template, name=""):
     # get template
     base, ext = os.path.splitext(template)
     if not ext and not os.path.isfile(template):
-        template = f"templates/{base}.yaml"
+        template = f"{HERE}/templates/{base}.yaml"
     stack = yaml.safe_load(open(template).read())
 
     if name:
@@ -51,17 +53,16 @@ def start(template, name=""):
             params["ImageId"] = images[-1].id
     else:
         # generate name for new image
-        here = os.path.dirname(os.path.abspath(__file__))
-        with open(f"{here}/names.csv") as f:
+        with open(f"{HERE}/names.csv") as f:
             names = f.read().split("\n")
         # avoid existing images
-        images = u.get_images(**u.tag(Name=name))
-        names = list(set(names) - set(images))
+        image_names = [u.get_tags(x).get("Name", "unknown") for x in u.get_images()]
+        names = list(set(names) - set(image_names))
         name = random.choice(names)
 
     # launch
     params["Name"] = name
-    log.info(f"launching {name} with template {template}")
+    log.info(f"launching {name} with template {base}")
     res = cf.create_stack(
         StackName=name,
         TemplateBody=yaml.dump(stack),

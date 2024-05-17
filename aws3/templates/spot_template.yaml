@@ -1,4 +1,5 @@
-# spot instance using a launch template, more flexible for multiple instances
+# spot instance using a launch template (alternative to spot.yaml)
+# apparently recommended but not sure of tangible benefits
 Resources:
   LaunchTemplate1:
     Type: "AWS::EC2::LaunchTemplate"

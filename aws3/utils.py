@@ -4,6 +4,7 @@ aws utility functions
     list resources
     get instance information
 """
+
 import itertools
 import json
 import logging

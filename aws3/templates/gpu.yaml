@@ -11,7 +11,7 @@ Resources:
 
         LaunchSpecifications:
           - ImageId: ami-0e39821b4a2a8bce6
-            #KeyName: key2
+            KeyName: key2
             #SecurityGroups: [default]
 
             InstanceRequirements:
